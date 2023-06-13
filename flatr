@@ -1,0 +1,77 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: Unlicense
+VERSION=0.1.0
+CMD="$(basename "$0")"
+PWD=$(pwd)
+
+print_help_text() {
+    cat <<EOF
+flatr $VERSION
+Run Flatpak app exposing the current working directory
+
+Usage: $CMD [OPTION...] APP [ARG...]
+
+Options:
+ -*         Any option for the flatpak-run command
+ -h --help  Print this help text and exit
+
+Examples:
+    $CMD com.vscodium.codium --no-sandbox .
+    $CMD --command=bash com.vscodium.codium
+EOF
+    exit
+}
+
+log_error() { printf '%s\n' "$*" >&2; }
+log_info() { printf '%s\n' "$*"; }
+log_debug() { [ "$is_debug" ] && printf 'DEBUG %s\n' "$*"; }
+abort() {
+    log_error "$*"
+    exit 1
+}
+
+read_arguments() {
+    APP_ID=
+    case "$1" in
+        --help | -h) print_help_text ;;
+    esac
+
+    for arg in "$@"; do
+        case "$arg" in
+            -*) ;;
+            *)
+                APP_ID="$arg"
+                break
+                ;;
+        esac
+    done
+
+    [ "$APP_ID" ] || abort "An app-id must be provided. Run $CMD --help"
+    [ "$HOME" = "$PWD" ] && abort "Do not use flatr in the home directory. This would expose your entire home directory inside the container, defeating the security purpose of this program."
+}
+
+check_dependencies() {
+    missing=
+    for dep in "$@"; do
+        if ! command -v "$dep" >/dev/null; then
+            log_error "$dep is not installed"
+            missing=1
+        fi
+    done
+
+    if [ "$missing" ]; then
+        abort "Aborted due to missing dependencies. Make sure all dependencies are available in the PATH"
+    fi
+}
+
+main() {
+    read_arguments "$@"
+    check_dependencies flatpak
+
+    flatpak run \
+        --filesystem="$PWD" \
+        --cwd="$PWD" \
+        "$@"
+}
+
+main "$@"
