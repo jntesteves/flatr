@@ -16,7 +16,7 @@ Options:
  -h --help  Print this help text and exit
 
 Examples:
-    $CMD com.vscodium.codium --no-sandbox .
+    $CMD com.vscodium.codium --new-window .
     $CMD --command=bash com.vscodium.codium
 EOF
     exit

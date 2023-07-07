@@ -14,7 +14,7 @@ Options:
  -h --help  Print this help text and exit
 
 Examples:
-    flatr com.vscodium.codium --no-sandbox .
+    flatr com.vscodium.codium --new-window .
     flatr --command=bash com.vscodium.codium
 ```
 
